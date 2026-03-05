@@ -1,0 +1,10 @@
+{
+  "name": "@opendoor/ai-status-line-linux-x64",
+  "version": "1.0.0",
+  "description": "OpenDoor AI StatusLine binary for linux-x64",
+  "files": ["opendoor-statusline"],
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "author": "OpenDoor Team",
+  "license": "MIT"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "@opendoor/ai-status-line-darwin-x64",
+  "version": "1.0.0",
+  "description": "OpenDoor AI StatusLine binary for darwin-x64",
+  "files": ["opendoor-statusline"],
+  "os": ["darwin"],
+  "cpu": ["x64"],
+  "author": "OpenDoor Team",
+  "license": "MIT"
+}
