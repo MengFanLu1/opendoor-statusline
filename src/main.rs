@@ -1,6 +1,6 @@
-use opendoor-statusline::cli::Cli;
-use opendoor-statusline::config::{Config, InputData};
-use opendoor-statusline::core::{collect_all_segments, StatusLineGenerator};
+use opendoor_statusline::cli::Cli;
+use opendoor_statusline::config::{Config, InputData};
+use opendoor_statusline::core::{collect_all_segments, StatusLineGenerator};
 use std::io::{self, IsTerminal};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // 自动配置 Claude Code settings.json
         println!("\n正在配置 Claude Code settings.json...");
-        match opendoor-statusline::auto_config::ClaudeSettingsConfigurator::configure_statusline() {
+        match opendoor_statusline::auto_config::ClaudeSettingsConfigurator::configure_statusline() {
             Ok(_) => {}
             Err(e) => {
                 eprintln!("⚠ 配置 Claude settings.json 失败: {}", e);
@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Apply theme override if provided
         if let Some(theme) = cli.theme {
-            config = opendoor-statusline::ui::themes::ThemePresets::get_theme(&theme);
+            config = opendoor_statusline::ui::themes::ThemePresets::get_theme(&theme);
         }
 
         config.print()?;
@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if cli.config {
         #[cfg(feature = "tui")]
         {
-            opendoor-statusline::ui::run_configurator()?;
+            opendoor_statusline::ui::run_configurator()?;
         }
         #[cfg(not(feature = "tui"))]
         {
@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Handle Claude Code patcher
     if let Some(claude_path) = cli.patch {
-        use opendoor-statusline::utils::ClaudeCodePatcher;
+        use opendoor_statusline::utils::ClaudeCodePatcher;
 
         println!("🔧 Claude Code Context Warning Disabler");
         println!("Target file: {}", claude_path);
@@ -120,7 +120,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Apply theme override if provided
     if let Some(theme) = cli.theme {
-        config = opendoor-statusline::ui::themes::ThemePresets::get_theme(&theme);
+        config = opendoor_statusline::ui::themes::ThemePresets::get_theme(&theme);
     }
 
     // Check if stdin has data
@@ -128,19 +128,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // No input data available, show main menu
         #[cfg(feature = "tui")]
         {
-            use opendoor-statusline::ui::{MainMenu, MenuResult};
+            use opendoor_statusline::ui::{MainMenu, MenuResult};
 
             if let Some(result) = MainMenu::run()? {
                 match result {
                     MenuResult::LaunchConfigurator => {
-                        opendoor-statusline::ui::run_configurator()?;
+                        opendoor_statusline::ui::run_configurator()?;
                     }
                     MenuResult::InitConfig => {
-                        opendoor-statusline::config::Config::init()?;
+                        opendoor_statusline::config::Config::init()?;
                         println!("Configuration initialized successfully!");
                     }
                     MenuResult::CheckConfig => {
-                        let config = opendoor-statusline::config::Config::load()?;
+                        let config = opendoor_statusline::config::Config::load()?;
                         config.check()?;
                         println!("Configuration is valid!");
                     }

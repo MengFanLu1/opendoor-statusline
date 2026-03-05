@@ -247,7 +247,7 @@ pub fn usage_segment() -> SegmentConfig {
     }
 }
 
-pub fn opendoor-statusline_usage_segment() -> SegmentConfig {
+pub fn opendoor_usage_segment() -> SegmentConfig {
     SegmentConfig {
         id: SegmentId::OpenDoorUsage,
         enabled: true,
@@ -272,7 +272,7 @@ pub fn opendoor-statusline_usage_segment() -> SegmentConfig {
     }
 }
 
-pub fn opendoor-statusline_subscription_segment() -> SegmentConfig {
+pub fn opendoor_subscription_segment() -> SegmentConfig {
     SegmentConfig {
         id: SegmentId::OpenDoorSubscription,
         enabled: true,
@@ -297,7 +297,7 @@ pub fn opendoor-statusline_subscription_segment() -> SegmentConfig {
     }
 }
 
-pub fn opendoor-statusline_status_segment() -> SegmentConfig {
+pub fn opendoor_status_segment() -> SegmentConfig {
     SegmentConfig {
         id: SegmentId::OpenDoorStatus,
         enabled: true,

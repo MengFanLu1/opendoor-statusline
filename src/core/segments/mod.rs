@@ -1,6 +1,6 @@
-pub mod opendoor-statusline_status;
-pub mod opendoor-statusline_subscription;
-pub mod opendoor-statusline_usage;
+pub mod byebyecode_status;
+pub mod byebyecode_subscription;
+pub mod byebyecode_usage;
 pub mod context_window;
 pub mod cost;
 pub mod directory;

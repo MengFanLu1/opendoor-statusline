@@ -18,19 +18,19 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-22.04
-            name: byebyecode-linux-x64.tar.gz
+            name: opendoor-statusline-linux-x64.tar.gz
           - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
-            name: byebyecode-linux-x64-static.tar.gz
+            name: opendoor-statusline-linux-x64-static.tar.gz
           - target: x86_64-pc-windows-gnu
             os: ubuntu-latest
-            name: byebyecode-windows-x64.zip
+            name: opendoor-statusline-windows-x64.zip
           - target: x86_64-apple-darwin
             os: macos-latest
-            name: byebyecode-macos-x64.tar.gz
+            name: opendoor-statusline-macos-x64.tar.gz
           - target: aarch64-apple-darwin
             os: macos-latest
-            name: byebyecode-macos-arm64.tar.gz
+            name: opendoor-statusline-macos-arm64.tar.gz
 
     steps:
     - name: Checkout
@@ -41,13 +41,13 @@ jobs:
       with:
         targets: ${{ matrix.target }}
 
-    - name: Install cross-compilation tools
+    - name: Install cross-compilation tools (Windows)
       if: matrix.target == 'x86_64-pc-windows-gnu'
       run: |
         sudo apt-get update
         sudo apt-get install -y mingw-w64 pkg-config libssl-dev
 
-    - name: Install musl tools
+    - name: Install musl tools (Linux static)
       if: matrix.target == 'x86_64-unknown-linux-musl'
       run: |
         sudo apt-get update
@@ -60,17 +60,17 @@ jobs:
       if: matrix.os != 'windows-latest' && matrix.target != 'x86_64-pc-windows-gnu'
       run: |
         mkdir -p dist
-        cp target/${{ matrix.target }}/release/byebyecode dist/byebyecode
+        cp target/${{ matrix.target }}/release/opendoor-statusline dist/opendoor-statusline
         cd dist
-        tar czf ../${{ matrix.name }} byebyecode
+        tar czf ../${{ matrix.name }} opendoor-statusline
 
     - name: Package Windows
       if: matrix.target == 'x86_64-pc-windows-gnu'
       run: |
         mkdir -p dist
-        cp target/${{ matrix.target }}/release/byebyecode.exe dist/byebyecode.exe
+        cp target/${{ matrix.target }}/release/opendoor-statusline.exe dist/opendoor-statusline.exe
         cd dist
-        zip ../${{ matrix.name }} byebyecode.exe
+        zip ../${{ matrix.name }} opendoor-statusline.exe
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -79,7 +79,7 @@ jobs:
         path: ${{ matrix.name }}
 
   release:
-    name: Create Release
+    name: Create Release & Publish NPM
     runs-on: ubuntu-latest
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
@@ -92,7 +92,7 @@ jobs:
       with:
         path: artifacts
 
-    - name: Create Release
+    - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         files: artifacts/*/*
@@ -100,7 +100,7 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Setup Node.js for NPM
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
@@ -109,78 +109,69 @@ jobs:
     - name: Extract binaries from archives
       run: |
         mkdir -p extracted
-        
+
         # macOS x64
-        tar -xzf artifacts/byebyecode-macos-x64.tar.gz/byebyecode-macos-x64.tar.gz -C extracted
-        mv extracted/byebyecode extracted/byebyecode-darwin-x64
-        
+        tar -xzf artifacts/opendoor-statusline-macos-x64.tar.gz/opendoor-statusline-macos-x64.tar.gz -C extracted
+        mv extracted/opendoor-statusline extracted/opendoor-statusline-darwin-x64
+
         # macOS ARM64
-        tar -xzf artifacts/byebyecode-macos-arm64.tar.gz/byebyecode-macos-arm64.tar.gz -C extracted
-        mv extracted/byebyecode extracted/byebyecode-darwin-arm64
-        
+        tar -xzf artifacts/opendoor-statusline-macos-arm64.tar.gz/opendoor-statusline-macos-arm64.tar.gz -C extracted
+        mv extracted/opendoor-statusline extracted/opendoor-statusline-darwin-arm64
+
         # Linux x64
-        tar -xzf artifacts/byebyecode-linux-x64.tar.gz/byebyecode-linux-x64.tar.gz -C extracted
-        mv extracted/byebyecode extracted/byebyecode-linux-x64
-        
+        tar -xzf artifacts/opendoor-statusline-linux-x64.tar.gz/opendoor-statusline-linux-x64.tar.gz -C extracted
+        mv extracted/opendoor-statusline extracted/opendoor-statusline-linux-x64
+
         # Linux musl (static)
-        tar -xzf artifacts/byebyecode-linux-x64-static.tar.gz/byebyecode-linux-x64-static.tar.gz -C extracted
-        mv extracted/byebyecode extracted/byebyecode-linux-x64-musl
-        
+        tar -xzf artifacts/opendoor-statusline-linux-x64-static.tar.gz/opendoor-statusline-linux-x64-static.tar.gz -C extracted
+        mv extracted/opendoor-statusline extracted/opendoor-statusline-linux-x64-musl
+
         # Windows
-        unzip artifacts/byebyecode-windows-x64.zip/byebyecode-windows-x64.zip -d extracted
-        mv extracted/byebyecode.exe extracted/byebyecode-win32-x64.exe
-        
-        # List extracted files
+        unzip artifacts/opendoor-statusline-windows-x64.zip/opendoor-statusline-windows-x64.zip -d extracted
+        mv extracted/opendoor-statusline.exe extracted/opendoor-statusline-win32-x64.exe
+
         ls -la extracted/
 
     - name: Prepare NPM packages
       run: |
-        # Prepare packages with version management
         node npm/scripts/prepare-packages.js
-        
-        # Copy binaries to platform directories
-        cp extracted/byebyecode-darwin-x64 npm-publish/darwin-x64/byebyecode
-        cp extracted/byebyecode-darwin-arm64 npm-publish/darwin-arm64/byebyecode
-        cp extracted/byebyecode-linux-x64 npm-publish/linux-x64/byebyecode
-        cp extracted/byebyecode-linux-x64-musl npm-publish/linux-x64-musl/byebyecode
-        cp extracted/byebyecode-win32-x64.exe npm-publish/win32-x64/byebyecode.exe
-        
-        # Set executable permissions for Unix binaries
-        chmod +x npm-publish/darwin-x64/byebyecode
-        chmod +x npm-publish/darwin-arm64/byebyecode
-        chmod +x npm-publish/linux-x64/byebyecode
-        chmod +x npm-publish/linux-x64-musl/byebyecode
-        
-        # Verify packages
+
+        cp extracted/opendoor-statusline-darwin-x64 npm-publish/darwin-x64/opendoor-statusline
+        cp extracted/opendoor-statusline-darwin-arm64 npm-publish/darwin-arm64/opendoor-statusline
+        cp extracted/opendoor-statusline-linux-x64 npm-publish/linux-x64/opendoor-statusline
+        cp extracted/opendoor-statusline-linux-x64-musl npm-publish/linux-x64-musl/opendoor-statusline
+        cp extracted/opendoor-statusline-win32-x64.exe npm-publish/win32-x64/opendoor-statusline.exe
+
+        chmod +x npm-publish/darwin-x64/opendoor-statusline
+        chmod +x npm-publish/darwin-arm64/opendoor-statusline
+        chmod +x npm-publish/linux-x64/opendoor-statusline
+        chmod +x npm-publish/linux-x64-musl/opendoor-statusline
+
         echo "Package structure:"
-        find npm-publish -name "package.json" -exec echo "=== {} ===" \; -exec head -5 {} \;
+        find npm-publish -name "package.json" | head -10
 
     - name: Publish platform packages to NPM
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
-        # Publish platform packages first
         for platform in darwin-x64 darwin-arm64 linux-x64 linux-x64-musl win32-x64; do
-          echo "📦 发布 @88code/byebyecode-$platform"
+          echo "Publishing @opendoor/ai-status-line-${platform}..."
           cd npm-publish/$platform
           npm publish --access public
           cd ../..
-          echo "✅ 完成 @88code/byebyecode-$platform"
+          echo "Done: @opendoor/ai-status-line-${platform}"
         done
 
     - name: Wait for NPM registry
-      run: |
-        echo "⏳ Waiting for platform packages to be available on NPM..."
-        sleep 30
+      run: sleep 30
 
     - name: Publish main package to NPM
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
         cd npm-publish/main
-        echo "📦 发布 @88code/byebyecode"
+        echo "Publishing @opendoor/ai-status-line..."
         npm publish --access public
-        echo "✅ 完成 @88code/byebyecode"
+        echo "Done: @opendoor/ai-status-line"
         echo ""
-        echo "🎉 NPM packages published successfully!"
-        echo "Install with: npm install -g @88code/byebyecode"
+        echo "Install with: npm install -g @opendoor/ai-status-line"

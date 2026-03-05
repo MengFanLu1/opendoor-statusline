@@ -229,7 +229,7 @@ impl UpdateState {
 }
 
 // Note: Auto-update is now handled by the npm wrapper script (opendoor-statusline.js)
-// It checks npm registry and runs `npm install -g @opendoor/opendoor-statusline@latest`
+// It checks npm registry and runs `npm install -g @opendoor/ai-status-line@latest`
 // This function is kept for future use if needed
 
 /// GitHub Release API response structures

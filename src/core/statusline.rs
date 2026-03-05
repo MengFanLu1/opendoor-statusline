@@ -533,11 +533,11 @@ pub fn collect_all_segments(
                 let segment = UpdateSegment::new();
                 segment.collect(input)
             }
-            crate::config::SegmentId::OpenDoorUsage => opendoor-statusline_usage::collect(config, input),
+            crate::config::SegmentId::OpenDoorUsage => byebyecode_usage::collect(config, input),
             crate::config::SegmentId::OpenDoorSubscription => {
-                opendoor-statusline_subscription::collect(config, input)
+                byebyecode_subscription::collect(config, input)
             }
-            crate::config::SegmentId::OpenDoorStatus => opendoor-statusline_status::collect(config, input),
+            crate::config::SegmentId::OpenDoorStatus => byebyecode_status::collect(config, input),
         };
 
         if let Some(data) = segment_data {

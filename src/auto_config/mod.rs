@@ -25,7 +25,7 @@ impl AutoConfigurator {
         Ok(())
     }
 
-    pub fn setup_opendoor-statusline(
+    pub fn setup_opendoor_statusline(
         &self,
         api_key: Option<String>,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -116,11 +116,11 @@ impl AutoConfigurator {
             #[derive(Serialize, Deserialize)]
             struct ApiKeys {
                 #[serde(skip_serializing_if = "Option::is_none")]
-                opendoor-statusline_api_key: Option<String>,
+                opendoor_api_key: Option<String>,
             }
 
             let keys = ApiKeys {
-                opendoor-statusline_api_key: api_key,
+                opendoor_api_key: api_key,
             };
 
             let keys_path = self.config_dir.join("api_keys.toml");
