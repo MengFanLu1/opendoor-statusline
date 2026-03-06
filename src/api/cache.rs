@@ -54,21 +54,3 @@ pub fn save_cached_stats(stats: &OpenDoorStats) -> Result<(), Box<dyn std::error
     Ok(())
 }
 
-/// 后台异步刷新缓存
-pub fn spawn_background_refresh(api_key: String, stats_url: String) {
-    std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_secs(1));
-
-        let config = super::ApiConfig {
-            enabled: true,
-            api_key,
-            stats_url,
-        };
-
-        if let Ok(client) = super::client::ApiClient::new(config) {
-            if let Ok(stats) = client.get_stats() {
-                let _ = save_cached_stats(&stats);
-            }
-        }
-    });
-}

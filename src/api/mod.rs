@@ -89,7 +89,8 @@ pub fn get_api_key_from_claude_settings() -> Option<String> {
 }
 
 /// 从 Claude settings.json 推断 OpenDoor stats URL
-/// base_url 格式通常是 https://xxx.com/v1，去掉 /v1 加 /api/me/stats
+/// base_url 格式必须是 https://xxx.com/v1，去掉 /v1 后拼接 /api/me/stats
+/// 若 base_url 不含 /v1（如 Hub 代理地址），返回 None，由调用方使用硬编码默认值
 pub fn get_stats_url_from_claude_settings() -> Option<String> {
     let path = get_claude_settings_path()?;
     if !path.exists() {
@@ -99,7 +100,11 @@ pub fn get_stats_url_from_claude_settings() -> Option<String> {
     let settings = serde_json::from_str::<serde_json::Value>(&content).ok()?;
     let base_url = settings.get("env")?.get("ANTHROPIC_BASE_URL")?.as_str()?;
 
+    // 只处理标准格式 https://xxx.com/v1，其他格式（如 Hub 代理）不做推断
     let base = base_url.trim_end_matches('/');
+    if !base.ends_with("/v1") {
+        return None;
+    }
     let base = base.trim_end_matches("/v1");
     Some(format!("{}/api/me/stats", base))
 }

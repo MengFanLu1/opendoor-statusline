@@ -72,6 +72,11 @@ pub fn collect(config: &Config, _input: &InputData) -> Option<SegmentData> {
     let limit = stats.limit_usd_f64();
     let balance = stats.balance_cny_f64();
     let pct = stats.percentage_used;
+    let safe_pct = if pct.is_finite() {
+        pct.clamp(0.0, 100.0)
+    } else {
+        0.0
+    };
 
     let mut metadata = HashMap::new();
     metadata.insert("balance_cny".to_string(), stats.balance_cny.clone());
@@ -89,9 +94,9 @@ pub fn collect(config: &Config, _input: &InputData) -> Option<SegmentData> {
 
     // 生成进度条
     let bar_len = 8usize;
-    let filled = ((pct / 100.0) * bar_len as f64).round() as usize;
-    let empty = bar_len - filled;
-    let color = get_status_color(pct);
+    let filled = ((safe_pct / 100.0) * bar_len as f64).round() as usize;
+    let empty = bar_len.saturating_sub(filled);
+    let color = get_status_color(safe_pct);
     let bar = format!("{}{}{}{}", color, "▓".repeat(filled), "░".repeat(empty), RESET);
 
     Some(SegmentData {

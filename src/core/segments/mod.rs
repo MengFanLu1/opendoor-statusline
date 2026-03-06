@@ -1,6 +1,4 @@
-pub mod byebyecode_status;
-pub mod byebyecode_subscription;
-pub mod byebyecode_usage;
+pub mod opendoor_usage;
 pub mod context_window;
 pub mod cost;
 pub mod directory;
@@ -8,6 +6,7 @@ pub mod git;
 pub mod model;
 pub mod output_style;
 pub mod session;
+#[cfg(feature = "self-update")]
 pub mod update;
 pub mod usage;
 
@@ -35,5 +34,6 @@ pub use git::GitSegment;
 pub use model::ModelSegment;
 pub use output_style::OutputStyleSegment;
 pub use session::SessionSegment;
+#[cfg(feature = "self-update")]
 pub use update::UpdateSegment;
 pub use usage::UsageSegment;

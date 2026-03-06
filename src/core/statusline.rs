@@ -514,7 +514,7 @@ pub fn collect_all_segments(
                 segment.collect(input)
             }
             crate::config::SegmentId::Usage => {
-                let segment = UsageSegment::new();
+                let segment = UsageSegment::new(&segment_config.options);
                 segment.collect(input)
             }
             crate::config::SegmentId::Cost => {
@@ -530,14 +530,19 @@ pub fn collect_all_segments(
                 segment.collect(input)
             }
             crate::config::SegmentId::Update => {
-                let segment = UpdateSegment::new();
-                segment.collect(input)
+                #[cfg(feature = "self-update")]
+                {
+                    let segment = UpdateSegment::new();
+                    segment.collect(input)
+                }
+                #[cfg(not(feature = "self-update"))]
+                {
+                    None
+                }
             }
-            crate::config::SegmentId::OpenDoorUsage => byebyecode_usage::collect(config, input),
-            crate::config::SegmentId::OpenDoorSubscription => {
-                byebyecode_subscription::collect(config, input)
-            }
-            crate::config::SegmentId::OpenDoorStatus => byebyecode_status::collect(config, input),
+            crate::config::SegmentId::OpenDoorUsage => opendoor_usage::collect(config, input),
+            crate::config::SegmentId::OpenDoorSubscription => None,
+            crate::config::SegmentId::OpenDoorStatus => None,
         };
 
         if let Some(data) = segment_data {

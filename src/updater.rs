@@ -42,6 +42,35 @@ pub struct UpdateState {
 }
 
 impl UpdateState {
+    #[cfg(feature = "self-update")]
+    fn state_file_path() -> std::path::PathBuf {
+        dirs::home_dir()
+            .unwrap_or_default()
+            .join(".claude")
+            .join("opendoor-statusline")
+            .join(".update_state.json")
+    }
+
+    fn default_state() -> Self {
+        UpdateState {
+            current_version: env!("CARGO_PKG_VERSION").to_string(),
+            ..Default::default()
+        }
+    }
+
+    #[cfg(feature = "self-update")]
+    fn load_from_disk() -> Self {
+        let state_file = Self::state_file_path();
+
+        if let Ok(content) = std::fs::read_to_string(&state_file) {
+            if let Ok(state) = serde_json::from_str::<UpdateState>(&content) {
+                return state;
+            }
+        }
+
+        Self::default_state()
+    }
+
     /// Get status bar display text
     pub fn status_text(&self) -> Option<String> {
         match &self.status {
@@ -77,32 +106,12 @@ impl UpdateState {
     pub fn load() -> Self {
         #[cfg(feature = "self-update")]
         {
-            let config_dir = dirs::home_dir()
-                .unwrap_or_default()
-                .join(".claude")
-                .join("opendoor-statusline");
+            let mut state = Self::load_from_disk();
+            if matches!(state.status, UpdateStatus::Checking) {
+                state.status = UpdateStatus::Idle;
+            }
 
-            let state_file = config_dir.join(".update_state.json");
-
-            let mut state = if let Ok(content) = std::fs::read_to_string(&state_file) {
-                if let Ok(state) = serde_json::from_str::<UpdateState>(&content) {
-                    state
-                } else {
-                    UpdateState {
-                        current_version: env!("CARGO_PKG_VERSION").to_string(),
-                        ..Default::default()
-                    }
-                }
-            } else {
-                UpdateState {
-                    current_version: env!("CARGO_PKG_VERSION").to_string(),
-                    ..Default::default()
-                }
-            };
-
-            // Trigger background update check if needed
             if state.should_check_update() {
-                // Check if another update process is running
                 let should_start_check = if let Some(pid) = state.update_pid {
                     !Self::is_process_running(pid)
                 } else {
@@ -110,21 +119,18 @@ impl UpdateState {
                 };
 
                 if should_start_check {
-                    // Perform synchronous update check for simplicity and reliability
                     use crate::updater::github::check_for_updates;
 
                     state.update_pid = Some(std::process::id());
-                    state.last_check = Some(chrono::Utc::now());
+                    state.last_check = Some(Utc::now());
                     let _ = state.save();
 
-                    // Perform update check
                     match check_for_updates() {
                         Ok(Some(release)) => {
                             if release.find_asset_for_platform().is_some() {
-                                // Set Ready status with timestamp, user must run --update manually
                                 state.status = UpdateStatus::Ready {
                                     version: release.version(),
-                                    found_at: chrono::Utc::now(),
+                                    found_at: Utc::now(),
                                 };
                             } else {
                                 state.status = UpdateStatus::Failed {
@@ -141,7 +147,6 @@ impl UpdateState {
                         }
                     }
 
-                    // Clear PID and save final state
                     state.update_pid = None;
                     let _ = state.save();
                 }
@@ -151,10 +156,7 @@ impl UpdateState {
         }
 
         #[cfg(not(feature = "self-update"))]
-        UpdateState {
-            current_version: env!("CARGO_PKG_VERSION").to_string(),
-            ..Default::default()
-        }
+        Self::default_state()
     }
 
     /// Check if a process with given PID is still running
@@ -192,13 +194,10 @@ impl UpdateState {
     pub fn save(&self) -> Result<(), std::io::Error> {
         #[cfg(feature = "self-update")]
         {
-            let config_dir = dirs::home_dir()
-                .unwrap_or_default()
-                .join(".claude")
-                .join("opendoor-statusline");
-
-            std::fs::create_dir_all(&config_dir)?;
-            let state_file = config_dir.join(".update_state.json");
+            let state_file = Self::state_file_path();
+            if let Some(parent) = state_file.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
 
             let content = serde_json::to_string_pretty(self)?;
             std::fs::write(&state_file, content)?;
@@ -210,16 +209,20 @@ impl UpdateState {
     /// Check if update check should be triggered
     #[cfg(feature = "self-update")]
     pub fn should_check_update(&self) -> bool {
-        // Don't check if already updating
-        match &self.status {
-            UpdateStatus::Checking
-            | UpdateStatus::Downloading { .. }
-            | UpdateStatus::Installing => return false,
-            _ => {}
+        if matches!(
+            self.status,
+            UpdateStatus::Downloading { .. } | UpdateStatus::Installing
+        ) {
+            return false;
         }
 
-        // Check every time as requested
-        true
+        let now = Utc::now();
+        let check_interval = chrono::Duration::hours(6);
+
+        match self.last_check {
+            Some(last_check) => now.signed_duration_since(last_check) >= check_interval,
+            None => true,
+        }
     }
 
     #[cfg(not(feature = "self-update"))]
@@ -348,13 +351,14 @@ pub mod github {
 
     /// Check for updates from GitHub Releases API
     pub fn check_for_updates() -> Result<Option<GitHubRelease>, Box<dyn std::error::Error>> {
-        let url = "https://api.github.com/repos/opendoor-statusline/opendoor-statusline/releases/latest";
+        let url = "https://api.github.com/repos/opendoor-ai/opendoor-statusline/releases/latest";
 
         let response = ureq::get(url)
             .set(
                 "User-Agent",
                 &format!("opendoor-statusline/{}", env!("CARGO_PKG_VERSION")),
             )
+            .timeout(std::time::Duration::from_secs(2))
             .call()?;
 
         if response.status() == 200 {

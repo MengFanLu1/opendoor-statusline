@@ -10,7 +10,7 @@ pub struct ApiClient {
 impl ApiClient {
     pub fn new(config: ApiConfig) -> Result<Self, Box<dyn std::error::Error>> {
         let client = Client::builder()
-            .timeout(Duration::from_secs(8))
+            .timeout(Duration::from_secs(3))
             .user_agent("opendoor-statusline/1.0.0")
             .build()?;
 

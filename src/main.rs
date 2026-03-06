@@ -183,7 +183,6 @@ fn migrate_legacy_config() -> Result<(), Box<dyn std::error::Error>> {
 
         if old_dir.exists() && !new_dir.exists() {
             std::fs::rename(&old_dir, &new_dir)?;
-            println!("✓ 已自动迁移配置目录: ~/.claude/opendoor → ~/.claude/opendoor-statusline");
         }
     }
     Ok(())

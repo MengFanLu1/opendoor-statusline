@@ -3,6 +3,7 @@ use crate::config::{InputData, SegmentId};
 use crate::utils::credentials;
 use chrono::{DateTime, Datelike, Duration, Local, Timelike, Utc};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
@@ -26,11 +27,30 @@ struct ApiUsageCache {
 }
 
 #[derive(Default)]
-pub struct UsageSegment;
+pub struct UsageSegment {
+    api_base_url: String,
+    cache_duration: u64,
+    timeout: u64,
+}
 
 impl UsageSegment {
-    pub fn new() -> Self {
-        Self
+    pub fn new(options: &HashMap<String, Value>) -> Self {
+        let api_base_url = options
+            .get("api_base_url")
+            .and_then(|v| v.as_str())
+            .unwrap_or("https://api.anthropic.com")
+            .to_string();
+        let cache_duration = options
+            .get("cache_duration")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(300);
+        let timeout = options.get("timeout").and_then(|v| v.as_u64()).unwrap_or(2);
+
+        Self {
+            api_base_url,
+            cache_duration,
+            timeout,
+        }
     }
 
     fn get_circle_icon(utilization: f64) -> String {
@@ -106,22 +126,6 @@ impl UsageSegment {
     }
 
     fn get_claude_code_version() -> String {
-        use std::process::Command;
-
-        let output = Command::new("npm")
-            .args(["view", "@anthropic-ai/claude-code", "version"])
-            .output();
-
-        match output {
-            Ok(output) if output.status.success() => {
-                let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                if !version.is_empty() {
-                    return format!("claude-code/{}", version);
-                }
-            }
-            _ => {}
-        }
-
         "claude-code".to_string()
     }
 
@@ -184,29 +188,10 @@ impl Segment for UsageSegment {
     fn collect(&self, _input: &InputData) -> Option<SegmentData> {
         let token = credentials::get_oauth_token()?;
 
-        // Load config from file to get segment options
-        let config = crate::config::Config::load().ok()?;
-        let segment_config = config.segments.iter().find(|s| s.id == SegmentId::Usage);
-
-        let api_base_url = segment_config
-            .and_then(|sc| sc.options.get("api_base_url"))
-            .and_then(|v| v.as_str())
-            .unwrap_or("https://api.anthropic.com");
-
-        let cache_duration = segment_config
-            .and_then(|sc| sc.options.get("cache_duration"))
-            .and_then(|v| v.as_u64())
-            .unwrap_or(300);
-
-        let timeout = segment_config
-            .and_then(|sc| sc.options.get("timeout"))
-            .and_then(|v| v.as_u64())
-            .unwrap_or(2);
-
         let cached_data = self.load_cache();
         let use_cached = cached_data
             .as_ref()
-            .map(|cache| self.is_cache_valid(cache, cache_duration))
+            .map(|cache| self.is_cache_valid(cache, self.cache_duration))
             .unwrap_or(false);
 
         let (five_hour_util, seven_day_util, resets_at) = if use_cached {
@@ -217,7 +202,7 @@ impl Segment for UsageSegment {
                 cache.resets_at,
             )
         } else {
-            match self.fetch_api_usage(api_base_url, &token, timeout) {
+            match self.fetch_api_usage(&self.api_base_url, &token, self.timeout) {
                 Some(response) => {
                     let cache = ApiUsageCache {
                         five_hour_utilization: response.five_hour.utilization,
