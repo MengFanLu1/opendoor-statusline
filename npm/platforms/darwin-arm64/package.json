@@ -1,5 +1,5 @@
 {
-  "name": "@opendoor/ai-status-line-darwin-arm64",
+  "name": "@code-opendoor-ai/statusline-darwin-arm64",
   "version": "1.0.0",
   "description": "OpenDoor AI StatusLine binary for darwin-arm64",
   "files": ["opendoor-statusline"],

@@ -1,5 +1,5 @@
 {
-  "name": "@opendoor/ai-status-line-win32-x64",
+  "name": "@code-opendoor-ai/statusline-win32-x64",
   "version": "1.0.0",
   "description": "OpenDoor AI StatusLine binary for win32-x64",
   "files": ["opendoor-statusline"],

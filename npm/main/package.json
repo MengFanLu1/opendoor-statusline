@@ -1,5 +1,5 @@
 {
-  "name": "@opendoor/ai-status-line",
+  "name": "@code-opendoor-ai/statusline",
   "version": "1.0.0",
   "description": "OpenDoor AI StatusLine - Claude Code status bar with balance & usage tracking",
   "bin": {
@@ -9,11 +9,11 @@
     "postinstall": "node scripts/postinstall.js"
   },
   "optionalDependencies": {
-    "@opendoor/ai-status-line-darwin-x64": "1.0.0",
-    "@opendoor/ai-status-line-darwin-arm64": "1.0.0",
-    "@opendoor/ai-status-line-linux-x64": "1.0.0",
-    "@opendoor/ai-status-line-linux-x64-musl": "1.0.0",
-    "@opendoor/ai-status-line-win32-x64": "1.0.0"
+    "@code-opendoor-ai/statusline-darwin-x64": "1.0.0",
+    "@code-opendoor-ai/statusline-darwin-arm64": "1.0.0",
+    "@code-opendoor-ai/statusline-linux-x64": "1.0.0",
+    "@code-opendoor-ai/statusline-linux-x64-musl": "1.0.0",
+    "@code-opendoor-ai/statusline-win32-x64": "1.0.0"
   },
   "repository": {
     "type": "git",

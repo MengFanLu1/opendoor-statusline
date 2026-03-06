@@ -1,11 +1,11 @@
-# @opendoor/ai-status-line
+# @code-opendoor-ai/statusline
 
 OpenDoor AI StatusLine - Claude Code status bar with balance & usage tracking
 
 ## Installation
 
 ```bash
-npm install -g @opendoor/ai-status-line
+npm install -g @code-opendoor-ai/statusline
 ```
 
 ## Features
@@ -36,7 +36,7 @@ opendoor-statusline --version
 Use npm mirror for faster installation:
 
 ```bash
-npm install -g @opendoor/ai-status-line --registry https://registry.npmmirror.com
+npm install -g @code-opendoor-ai/statusline --registry https://registry.npmmirror.com
 ```
 
 ## More Information

@@ -45,12 +45,12 @@ try {
   }
 
   const packageMap = {
-    'darwin-x64': '@opendoor/ai-status-line-darwin-x64',
-    'darwin-arm64': '@opendoor/ai-status-line-darwin-arm64',
-    'linux-x64': '@opendoor/ai-status-line-linux-x64',
-    'linux-x64-musl': '@opendoor/ai-status-line-linux-x64-musl',
-    'win32-x64': '@opendoor/ai-status-line-win32-x64',
-    'win32-ia32': '@opendoor/ai-status-line-win32-x64',
+    'darwin-x64': '@code-opendoor-ai/statusline-darwin-x64',
+    'darwin-arm64': '@code-opendoor-ai/statusline-darwin-arm64',
+    'linux-x64': '@code-opendoor-ai/statusline-linux-x64',
+    'linux-x64-musl': '@code-opendoor-ai/statusline-linux-x64-musl',
+    'win32-x64': '@code-opendoor-ai/statusline-win32-x64',
+    'win32-ia32': '@code-opendoor-ai/statusline-win32-x64',
   };
 
   const packageName = packageMap[platformKey];

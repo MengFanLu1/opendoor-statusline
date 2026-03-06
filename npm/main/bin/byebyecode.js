@@ -126,7 +126,7 @@ function checkAndInstallPendingUpdate() {
   console.error('');
 
   try {
-    execSync('npm install -g @opendoor/ai-status-line@latest', {
+    execSync('npm install -g @code-opendoor-ai/statusline@latest', {
       stdio: 'inherit',
       timeout: 120000
     });
@@ -154,7 +154,7 @@ function checkAndInstallPendingUpdate() {
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.error('⚠ 自动更新失败');
     console.error('  请稍后重试，或手动运行:');
-    console.error('  npm update -g @opendoor/ai-status-line');
+    console.error('  npm update -g @code-opendoor-ai/statusline');
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.error('');
     // 不删除 pending 文件，下次启动时继续尝试
@@ -197,7 +197,7 @@ function checkVersionAndNotify() {
 
     // 从 npm registry 获取最新版本
     // console.error('Checking for updates...'); // Optional: verbose feedback
-    const latestVersion = execSync('npm view @opendoor/ai-status-line version', {
+    const latestVersion = execSync('npm view @code-opendoor-ai/statusline version', {
       encoding: 'utf8',
       timeout: 5000,
       stdio: ['ignore', 'pipe', 'ignore']
@@ -220,7 +220,7 @@ function checkVersionAndNotify() {
    最新版本: \x1b[32mv${latestVersion}\x1b[0m
 
 \x1b[36m💡 更新将在您启动 Claude Code 时自动进行\x1b[0m
-   (或手动运行: npm update -g @opendoor/ai-status-line)
+   (或手动运行: npm update -g @code-opendoor-ai/statusline)
 \x1b[36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m
       `.trim();
 
@@ -277,12 +277,12 @@ if (platform === 'linux') {
 }
 
 const packageMap = {
-  'darwin-x64': '@opendoor/ai-status-line-darwin-x64',
-  'darwin-arm64': '@opendoor/ai-status-line-darwin-arm64',
-  'linux-x64': '@opendoor/ai-status-line-linux-x64',
-  'linux-x64-musl': '@opendoor/ai-status-line-linux-x64-musl',
-  'win32-x64': '@opendoor/ai-status-line-win32-x64',
-  'win32-ia32': '@opendoor/ai-status-line-win32-x64',
+  'darwin-x64': '@code-opendoor-ai/statusline-darwin-x64',
+  'darwin-arm64': '@code-opendoor-ai/statusline-darwin-arm64',
+  'linux-x64': '@code-opendoor-ai/statusline-linux-x64',
+  'linux-x64-musl': '@code-opendoor-ai/statusline-linux-x64-musl',
+  'win32-x64': '@code-opendoor-ai/statusline-win32-x64',
+  'win32-ia32': '@code-opendoor-ai/statusline-win32-x64',
 };
 
 const packageName = packageMap[platformKey];
@@ -366,10 +366,10 @@ if (!binaryPath || !fs.existsSync(binaryPath)) {
   console.error('');
   console.error('Troubleshooting:');
   console.error('1. Try reinstalling with force:');
-  console.error('   npm install -g @opendoor/ai-status-line --force');
+  console.error('   npm install -g @code-opendoor-ai/statusline --force');
   console.error('');
   console.error('2. If using pnpm, try installing with --shamefully-hoist:');
-  console.error('   pnpm add -g @opendoor/ai-status-line --shamefully-hoist');
+  console.error('   pnpm add -g @code-opendoor-ai/statusline --shamefully-hoist');
   console.error('');
   console.error('3. Manually download the binary from GitHub Releases and place it at:');
   console.error(`   ${globalBinaryPath}`);

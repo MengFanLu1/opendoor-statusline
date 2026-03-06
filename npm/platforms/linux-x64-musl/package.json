@@ -1,5 +1,5 @@
 {
-  "name": "@opendoor/ai-status-line-linux-x64-musl",
+  "name": "@code-opendoor-ai/statusline-linux-x64-musl",
   "version": "1.0.0",
   "description": "OpenDoor AI StatusLine binary for linux-x64-musl",
   "files": ["opendoor-statusline"],

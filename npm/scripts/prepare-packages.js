@@ -37,7 +37,7 @@ platforms.forEach(platform => {
     JSON.stringify(packageJson, null, 2) + '\n'
   );
 
-  console.log(`Prepared @opendoor/ai-status-line-${platform} v${version}`);
+  console.log(`Prepared @code-opendoor-ai/statusline-${platform} v${version}`);
 });
 
 // Prepare main package
@@ -53,7 +53,7 @@ mainPackageJson.version = version;
 
 if (mainPackageJson.optionalDependencies) {
   Object.keys(mainPackageJson.optionalDependencies).forEach(dep => {
-    if (dep.startsWith('@opendoor/ai-status-line-')) {
+    if (dep.startsWith('@code-opendoor-ai/statusline-')) {
       mainPackageJson.optionalDependencies[dep] = version;
     }
   });
@@ -64,5 +64,5 @@ fs.writeFileSync(
   JSON.stringify(mainPackageJson, null, 2) + '\n'
 );
 
-console.log(`Prepared @opendoor/ai-status-line v${version}`);
+console.log(`Prepared @code-opendoor-ai/statusline v${version}`);
 console.log(`\nAll packages prepared (version ${version})`);
