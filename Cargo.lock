@@ -154,28 +154,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5dd9dc738b7a8311c7ade152424974d8115f2cdad61e8dab8dac9f2362298510"
 
 [[package]]
-name = "byebyecode"
-version = "1.1.28"
-dependencies = [
- "ansi-to-tui",
- "ansi_term",
- "base64 0.21.7",
- "chrono",
- "clap",
- "crossterm",
- "dirs",
- "ratatui",
- "regex",
- "reqwest",
- "semver",
- "serde",
- "serde_json",
- "toml",
- "ureq",
- "which",
-]
-
-[[package]]
 name = "bytes"
 version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -992,6 +970,28 @@ name = "once_cell_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
+
+[[package]]
+name = "opendoor-statusline"
+version = "1.0.0"
+dependencies = [
+ "ansi-to-tui",
+ "ansi_term",
+ "base64 0.21.7",
+ "chrono",
+ "clap",
+ "crossterm",
+ "dirs",
+ "ratatui",
+ "regex",
+ "reqwest",
+ "semver",
+ "serde",
+ "serde_json",
+ "toml",
+ "ureq",
+ "which",
+]
 
 [[package]]
 name = "option-ext"

@@ -29,9 +29,27 @@
 
 状态栏显示：模型 | 目录 | Git 分支状态 | 上下文窗口 | 用量信息
 
-## 安装
+## 快速开始
 
-### npm 安装
+### 前提条件
+
+你需要先在 [OpenDoor](https://code-opendoor.com) 注册账号并完成 Claude Code 的接入配置，确保 `~/.claude/settings.json` 中已配置好 `ANTHROPIC_BASE_URL` 和 `ANTHROPIC_AUTH_TOKEN`。
+
+如果你还没有配置，参考 OpenDoor 控制台的接入文档完成以下配置：
+
+```json
+// ~/.claude/settings.json
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://code-opendoor.com/v1",
+    "ANTHROPIC_AUTH_TOKEN": "你的 API Key"
+  }
+}
+```
+
+### 第 1 步：安装
+
+**npm 安装（推荐）：**
 
 ```bash
 npm install -g @code-opendoor-ai/statusline
@@ -43,162 +61,151 @@ npm install -g @code-opendoor-ai/statusline
 npm install -g @code-opendoor-ai/statusline --registry=https://registry.npmmirror.com
 ```
 
-### 手动安装
+**手动安装：**
 
-1. 访问 [Releases 页面](https://github.com/opendoor-ai/opendoor-statusline/releases) 下载对应平台的压缩包
+1. 从 [Releases 页面](https://github.com/opendoor-ai/opendoor-statusline/releases) 下载对应平台的压缩包
 2. 解压获取 `opendoor-statusline` 可执行文件
-3. 放置到以下目录：
+3. 放到系统 PATH 目录下，或放到以下位置：
    - macOS/Linux: `~/.claude/opendoor-statusline/opendoor-statusline`
    - Windows: `%USERPROFILE%\.claude\opendoor-statusline\opendoor-statusline.exe`
-4. 赋予执行权限 (macOS/Linux):
+4. macOS/Linux 需要赋予执行权限：
    ```bash
    chmod +x ~/.claude/opendoor-statusline/opendoor-statusline
    ```
 
-### 初始化
+### 第 2 步：初始化
 
 ```bash
 opendoor-statusline --init
 ```
 
-启动 Claude Code 即可看到状态栏。
+这一步会：
+- 在 `~/.claude/opendoor-statusline/` 下生成默认配置文件 `config.toml`
+- 自动将 `~/.claude/settings.json` 的 `statusLine` 字段指向当前二进制路径
+- 添加 OpenDoor 用量监控和订阅信息段
+
+### 第 3 步：启动 Claude Code
+
+```bash
+claude
+```
+
+启动后状态栏会自动显示。工具会从 `settings.json` 中读取你的 API Key，调用 OpenDoor API 获取用量数据并展示在状态栏上。
+
+显示效果类似：
+
+```
+ Opus 4.6 |  code-project |  main |  46.4% 92.8k tokens | opendoor $44.41/90 ▓▓▓▓░░░░
+```
 
 ## 特性
 
-### 核心功能
+### 状态栏段落
 
-- **Git 集成** - 显示分支、状态和跟踪信息
-- **模型显示** - 简化的 Claude 模型名称（如 `claude-4-sonnet` -> `Sonnet 4`）
-- **用量追踪** - 实时显示中转站套餐余额和用量
-- **目录显示** - 显示当前工作空间
-- **上下文窗口** - 令牌使用百分比和上下文限制跟踪
-- **简洁设计** - 使用 Nerd Font 图标
+| 段落 | 说明 |
+|------|------|
+| `model` | 当前 AI 模型（如 Opus 4.6、Sonnet 4） |
+| `directory` | 当前工作目录 |
+| `git` | Git 分支名 + 状态（`✓` 清洁 / `●` 有更改 / `⚠` 冲突 / `↑↓` 领先落后） |
+| `context_window` | 上下文窗口使用百分比和 token 数 |
+| `usage` | API 用量（Claude 原生） |
+| `cost` | 当前会话费用 |
+| `opendoor_usage` | OpenDoor 用量（已用/限额 + 进度条） |
 
-### 中转站用量监控
+### 用量监控
 
-- **自动检测 API Key** - 从 `~/.claude/settings.json` 自动读取
-- **余额进度条** - 可视化显示套餐用量（如 `$13.86/$50 ▓▓▓░░░░░░░`）
-- **多套餐支持** - 支持 PLUS/PRO/MAX/PAYGO 等套餐类型
-- **智能 Fallback** - Usage API 失效时自动切换到 Subscription API
+- **自动读取 API Key** - 无需额外配置，直接从 `settings.json` 读取
+- **进度条可视化** - 用量一目了然（如 `$13.86/$50 ▓▓▓░░░░░░░`）
+- **状态色** - 用量 <50% 绿色，50%-80% 黄色，>80% 红色
+- **额度耗尽提醒** - 用完后显示警告
+- **缓存机制** - API 失败时降级到本地缓存，不影响状态栏显示
 
-### 交互式 TUI
-
-- **TUI 配置界面** - 实时预览配置效果
-- **主题系统** - 多种内置主题（cometix, minimal, gruvbox, nord, powerline-dark 等）
-- **段落自定义** - 精细化控制各段落的启用/禁用、颜色、图标
-
-### Claude Code 增强
-
-- **禁用上下文警告** - 移除 "Context low" 提示
-- **启用详细模式** - 增强输出详细信息
-- **自动备份** - 安全修改，支持轻松恢复
-
-## 使用
-
-### 配置管理
+### 交互式 TUI 配置
 
 ```bash
-# 初始化配置文件
-opendoor-statusline --init
-
-# 检查配置有效性
-opendoor-statusline --check
-
-# 打印当前配置
-opendoor-statusline --print
-
-# 进入 TUI 配置模式
 opendoor-statusline --config
-
-# 通过 opendoor-statusline 启动 Claude Code
-opendoor-statusline --wrap
 ```
 
-### 主题切换
+进入可视化配置界面，支持实时预览效果，可以调整段落顺序、启用/禁用、修改颜色和图标。
+
+### 主题系统
+
+内置多种主题，可通过命令行临时切换：
 
 ```bash
-# 临时使用指定主题
-opendoor-statusline --theme cometix
-opendoor-statusline --theme minimal
 opendoor-statusline --theme gruvbox
 opendoor-statusline --theme nord
+opendoor-statusline --theme minimal
 opendoor-statusline --theme powerline-dark
-
-# 使用自定义主题
-opendoor-statusline --theme my-custom-theme
 ```
 
-### Claude Code 补丁
+也可以在 `~/.claude/opendoor-statusline/themes/` 下放置自定义主题文件。
+
+### Claude Code 补丁（可选）
+
+禁用 "Context low" 警告、启用详细模式、添加状态栏自动刷新：
 
 ```bash
 opendoor-statusline --patch /path/to/claude-code/cli.js
 ```
 
-## 配置
+会自动创建备份文件，可随时恢复。
 
-配置文件路径：`~/.claude/opendoor-statusline/config.toml`
+## 命令速查
 
-通过 `opendoor-statusline --config` 可以进入交互式 TUI 编辑配置并实时预览效果。
-
-### 可用段落
-
-| 段落 | 说明 |
+| 命令 | 说明 |
 |------|------|
-| `model` | 当前使用的 AI 模型 |
-| `directory` | 当前工作目录 |
-| `git` | Git 分支和状态 |
-| `context_window` | 上下文窗口使用情况 |
-| `usage` | API 用量（原生） |
-| `cost` | 会话费用 |
-| `session` | 会话信息 |
-| `output_style` | 当前输出样式 |
-| `opendoor_usage` | 中转站套餐用量（带进度条） |
+| `opendoor-statusline --init` | 初始化配置并注册到 Claude Code |
+| `opendoor-statusline --config` | 打开 TUI 可视化配置界面 |
+| `opendoor-statusline --check` | 检查配置文件是否有效 |
+| `opendoor-statusline --print` | 打印当前配置内容 |
+| `opendoor-statusline --theme <name>` | 临时切换主题 |
+| `opendoor-statusline --patch <path>` | 给 Claude Code cli.js 打补丁 |
+| `opendoor-statusline --update` | 检查更新 |
 
-所有段落都支持：启用/禁用、自定义分隔符和图标、颜色自定义、格式选项。
+## 配置文件
 
-### Git 状态指示器
-
-- 带 Nerd Font 图标的分支名
-- 状态：`✓` 清洁，`●` 有更改，`⚠` 冲突
-- 远程跟踪：`↑n` 领先，`↓n` 落后
+| 文件 | 路径 | 说明 |
+|------|------|------|
+| 主配置 | `~/.claude/opendoor-statusline/config.toml` | 段落、颜色、主题等配置 |
+| API 密钥 | `~/.claude/opendoor-statusline/api_keys.toml` | 单独存放的 API Key（可选） |
+| 自定义主题 | `~/.claude/opendoor-statusline/themes/*.toml` | 自定义主题文件 |
+| Claude 配置 | `~/.claude/settings.json` | Claude Code 配置，statusLine 字段由 --init 自动写入 |
 
 ## 系统要求
 
-- **Git**: 1.5+（推荐 2.22+ 以获得更好的分支检测）
-- **终端**: 需支持 Nerd Font 图标
-  - 安装 [Nerd Font](https://www.nerdfonts.com/) 字体
-  - 中文用户推荐: [Maple Font](https://github.com/subframe7536/maple-font)
-- **Claude Code**: 用于状态栏集成
+- **Claude Code** - 状态栏依赖 Claude Code 运行
+- **Node.js** >= 14（npm 安装方式需要）
+- **Git** >= 1.5（推荐 2.22+）
+- **终端字体** - 推荐安装 [Nerd Font](https://www.nerdfonts.com/) 以正确显示图标，中文用户推荐 [Maple Font](https://github.com/subframe7536/maple-font)
 
-## 开发
+## 从源码构建
 
 ```bash
-# 构建开发版本
-cargo build
-
-# 运行测试
-cargo test
-
-# 构建优化版本
 cargo build --release
 ```
 
+构建产物位于 `target/release/opendoor-statusline`。
+
 ## 常见问题
 
-### Binary not found
+### 安装后报 Binary not found
 
-安装后运行报 `Binary not found`，通常是 npm 路径解析或网络下载失败。
+通常是 npm 路径解析或网络下载失败，尝试：
 
 ```bash
-# 强制重新安装
 npm install -g @code-opendoor-ai/statusline --force
 ```
 
-如果仍然失败，参考上方手动安装步骤。
+仍然失败请使用手动安装方式。
 
-### macOS 编译错误 (ring crate)
+### 状态栏没有显示用量
 
-从源码编译遇到 `ring` 相关错误，安装 Xcode Command Line Tools：
+检查 `~/.claude/settings.json` 中是否配置了 `ANTHROPIC_BASE_URL` 和 `ANTHROPIC_AUTH_TOKEN`，这两个字段是 OpenDoor 用量监控的数据来源。
+
+### macOS 源码编译报错 (ring crate)
+
+安装 Xcode Command Line Tools：
 
 ```bash
 xcode-select --install

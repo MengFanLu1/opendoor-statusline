@@ -70,7 +70,6 @@ pub fn collect(config: &Config, _input: &InputData) -> Option<SegmentData> {
 
     let used = stats.used_usd_f64();
     let limit = stats.limit_usd_f64();
-    let balance = stats.balance_cny_f64();
     let pct = stats.percentage_used;
     let safe_pct = if pct.is_finite() {
         pct.clamp(0.0, 100.0)
@@ -79,14 +78,13 @@ pub fn collect(config: &Config, _input: &InputData) -> Option<SegmentData> {
     };
 
     let mut metadata = HashMap::new();
-    metadata.insert("balance_cny".to_string(), stats.balance_cny.clone());
     metadata.insert("used_usd".to_string(), stats.used_usd.clone());
     metadata.insert("limit_usd".to_string(), stats.limit_usd.clone());
 
     // 额度耗尽
     if stats.is_exhausted() {
         return Some(SegmentData {
-            primary: format!("¥{:.2} | ${:.2}/{:.0} 已耗尽", balance, used, limit),
+            primary: format!("${:.2}/{:.0} 已耗尽", used, limit),
             secondary: "请前往 OpenDoor 充值".to_string(),
             metadata,
         });
@@ -100,7 +98,7 @@ pub fn collect(config: &Config, _input: &InputData) -> Option<SegmentData> {
     let bar = format!("{}{}{}{}", color, "▓".repeat(filled), "░".repeat(empty), RESET);
 
     Some(SegmentData {
-        primary: format!("¥{:.2} | ${:.2}/{:.0} {}", balance, used, limit, bar),
+        primary: format!("${:.2}/{:.0} {}", used, limit, bar),
         secondary: String::new(),
         metadata,
     })
