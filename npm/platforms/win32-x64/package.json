@@ -2,7 +2,7 @@
   "name": "@code-opendoor-ai/statusline-win32-x64",
   "version": "1.0.0",
   "description": "OpenDoor AI StatusLine binary for win32-x64",
-  "files": ["opendoor-statusline"],
+  "files": ["opendoor-statusline.exe"],
   "os": ["win32"],
   "cpu": ["x64"],
   "author": "OpenDoor Team",
