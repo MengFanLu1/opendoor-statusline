@@ -1,8 +1,24 @@
 # OpenDoor StatusLine
 
-基于 Rust 的高性能 Claude Code 状态栏工具，支持余额/用量追踪、Git 信息展示、交互式 TUI 配置和多主题系统。
+[OpenDoor](https://code-opendoor.com) 官方 Claude Code 状态栏工具，实时显示余额和用量信息。
+
+基于 Rust 开发，集成 Git 信息展示、用量追踪、交互式 TUI 配置和多主题系统。
 
 > 本项目基于 [CCometixLine](https://github.com/cometix-ai/ccline) 和 [ByeByeCode](https://github.com/byebye-code/byebyecode) 的优秀工作进行开发，感谢原作者们的辛勤付出。
+
+## 关于 OpenDoor
+
+[OpenDoor](https://code-opendoor.com) 是专为国内开发者打造的 AI 编程中转服务平台，核心特性：
+
+- **国内直连** - 无需科学上网，多地域节点保障稳定访问
+- **多工具支持** - Claude Code / Codex / Cursor / Windsurf / Gemini 一站接入
+- **按量付费** - 无月费无订阅，支付宝/微信充值，最低 10 元起
+- **消费可控** - 多维度配额限制，多 Key 独立管理，实时用量监控
+- **多模型覆盖** - Claude / GPT / Gemini 一个平台全搞定
+
+注册即送体验额度，三步开始使用：注册账号 -> 充值余额 -> 一键接入 IDE
+
+访问 [code-opendoor.com](https://code-opendoor.com) 了解更多。
 
 ![Language:Rust](https://img.shields.io/static/v1?label=Language&message=Rust&color=orange&style=flat-square)
 ![License:MIT](https://img.shields.io/static/v1?label=License&message=MIT&color=blue&style=flat-square)
