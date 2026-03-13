@@ -65,6 +65,8 @@ struct ClaudeSettings {
 struct ClaudeEnv {
     #[serde(rename = "ANTHROPIC_AUTH_TOKEN")]
     auth_token: Option<String>,
+    #[serde(rename = "ANTHROPIC_API_KEY")]
+    api_key: Option<String>,
     #[serde(rename = "ANTHROPIC_BASE_URL")]
     base_url: Option<String>,
 }
@@ -83,7 +85,8 @@ pub fn get_api_key_from_claude_settings() -> Option<String> {
     let settings: ClaudeSettings = serde_json::from_str(&content).ok()?;
     let env = settings.env?;
     if env.base_url.is_some() {
-        return env.auth_token;
+        // 优先 AUTH_TOKEN，回退 API_KEY
+        return env.auth_token.or(env.api_key);
     }
     None
 }
