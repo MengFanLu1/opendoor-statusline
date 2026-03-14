@@ -1,6 +1,6 @@
 [package]
 name = "opendoor-statusline"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 description = "OpenDoor AI StatusLine - Claude Code status bar with balance & usage tracking"
 authors = ["OpenDoor Team"]
