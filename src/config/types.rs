@@ -247,6 +247,17 @@ impl NormalizedUsage {
 }
 
 impl Config {
+    /// 将主题中存在但用户配置中缺失的段追加到末尾
+    /// 用于版本升级后自动补充新增段，不修改用户已有配置
+    pub fn merge_missing_segments(&mut self) {
+        let theme_config = crate::ui::themes::ThemePresets::get_theme(&self.theme);
+        for theme_segment in theme_config.segments {
+            if !self.segments.iter().any(|s| s.id == theme_segment.id) {
+                self.segments.push(theme_segment);
+            }
+        }
+    }
+
     /// Check if current config matches the specified theme preset
     pub fn matches_theme(&self, theme_name: &str) -> bool {
         let theme_preset = crate::ui::themes::ThemePresets::get_theme(theme_name);
