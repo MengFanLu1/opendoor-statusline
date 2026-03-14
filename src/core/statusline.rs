@@ -465,13 +465,13 @@ impl StatusLineGenerator {
         let white_separator = format!("\x1b[37m{}\x1b[0m", self.config.style.separator);
         let mut result = rendered_segments[0].clone();
 
-        for i in 1..rendered_segments.len() {
+        for (i, seg) in rendered_segments.iter().enumerate().skip(1) {
             if break_positions.contains(&i) {
                 result.push('\n');
             } else {
                 result.push_str(&white_separator);
             }
-            result.push_str(&rendered_segments[i]);
+            result.push_str(seg);
         }
 
         result
