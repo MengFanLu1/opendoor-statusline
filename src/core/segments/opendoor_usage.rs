@@ -95,7 +95,13 @@ pub fn collect(config: &Config, _input: &InputData) -> Option<SegmentData> {
     let filled = ((safe_pct / 100.0) * bar_len as f64).round() as usize;
     let empty = bar_len.saturating_sub(filled);
     let color = get_status_color(safe_pct);
-    let bar = format!("{}{}{}{}", color, "▓".repeat(filled), "░".repeat(empty), RESET);
+    let bar = format!(
+        "{}{}{}{}",
+        color,
+        "▓".repeat(filled),
+        "░".repeat(empty),
+        RESET
+    );
 
     Some(SegmentData {
         primary: format!("${:.2}/{:.0} {}", used, limit, bar),
@@ -104,10 +110,7 @@ pub fn collect(config: &Config, _input: &InputData) -> Option<SegmentData> {
     })
 }
 
-fn fetch_stats_with_cache(
-    api_key: &str,
-    stats_url: &str,
-) -> Option<crate::api::OpenDoorStats> {
+pub fn fetch_stats_with_cache(api_key: &str, stats_url: &str) -> Option<crate::api::OpenDoorStats> {
     let config = ApiConfig {
         enabled: true,
         api_key: api_key.to_string(),

@@ -79,6 +79,7 @@ pub enum SegmentId {
     OpenDoorUsage,
     OpenDoorSubscription,
     OpenDoorStatus,
+    OpenDoorDailyCost,
 }
 
 // Legacy compatibility structure

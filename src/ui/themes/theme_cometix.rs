@@ -230,3 +230,28 @@ pub fn opendoor_status_segment() -> SegmentConfig {
         options: HashMap::new(),
     }
 }
+
+pub fn opendoor_daily_cost_segment() -> SegmentConfig {
+    SegmentConfig {
+        id: SegmentId::OpenDoorDailyCost,
+        enabled: true,
+        icon: IconConfig {
+            plain: "今日".to_string(),
+            nerd_font: "\u{f0526}".to_string(), // mdi-calendar-today
+        },
+        colors: ColorConfig {
+            icon: Some(AnsiColor::Color256 { c256: 220 }), // Gold
+            text: Some(AnsiColor::Color256 { c256: 255 }), // White
+            background: None,
+        },
+        styles: TextStyleConfig { text_bold: false },
+        options: {
+            let mut opts = HashMap::new();
+            opts.insert(
+                "api_key".to_string(),
+                serde_json::Value::String("".to_string()),
+            );
+            opts
+        },
+    }
+}

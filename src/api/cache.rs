@@ -8,7 +8,10 @@ const CACHE_FRESH_SECONDS: u64 = 300;
 
 fn get_cache_file() -> Option<PathBuf> {
     let home = dirs::home_dir()?;
-    let cache_dir = home.join(".claude").join("opendoor-statusline").join("cache");
+    let cache_dir = home
+        .join(".claude")
+        .join("opendoor-statusline")
+        .join("cache");
     fs::create_dir_all(&cache_dir).ok()?;
     Some(cache_dir.join("stats.json"))
 }
@@ -53,4 +56,3 @@ pub fn save_cached_stats(stats: &OpenDoorStats) -> Result<(), Box<dyn std::error
     }
     Ok(())
 }
-

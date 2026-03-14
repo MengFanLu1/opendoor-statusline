@@ -212,6 +212,11 @@ impl PreviewComponent {
                     secondary: "".to_string(),
                     metadata: HashMap::new(),
                 },
+                SegmentId::OpenDoorDailyCost => SegmentData {
+                    primary: "$1.23 (15次)".to_string(),
+                    secondary: "".to_string(),
+                    metadata: HashMap::new(),
+                },
             };
 
             segments_data.push((segment_config.clone(), mock_data));

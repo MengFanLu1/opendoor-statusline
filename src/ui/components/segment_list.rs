@@ -71,6 +71,7 @@ impl SegmentListComponent {
                     }
                     SegmentId::OpenDoorSubscription => "opendoor 订阅",
                     SegmentId::OpenDoorStatus => "opendoor 状态",
+                    SegmentId::OpenDoorDailyCost => "opendoor 今日消费",
                 };
 
                 if is_selected {

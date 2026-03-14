@@ -1,9 +1,10 @@
-pub mod opendoor_usage;
 pub mod context_window;
 pub mod cost;
 pub mod directory;
 pub mod git;
 pub mod model;
+pub mod opendoor_daily_cost;
+pub mod opendoor_usage;
 pub mod output_style;
 pub mod session;
 #[cfg(feature = "self-update")]

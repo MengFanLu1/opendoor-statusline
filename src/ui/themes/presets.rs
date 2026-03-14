@@ -140,6 +140,7 @@ impl ThemePresets {
                 theme_cometix::output_style_segment(),
                 theme_cometix::opendoor_usage_segment(),
                 theme_cometix::opendoor_subscription_segment(),
+                theme_cometix::opendoor_daily_cost_segment(),
             ],
             theme: "cometix".to_string(),
         }
@@ -164,6 +165,7 @@ impl ThemePresets {
                 theme_default::opendoor_usage_segment(),
                 theme_default::opendoor_subscription_segment(),
                 theme_default::opendoor_status_segment(),
+                theme_default::opendoor_daily_cost_segment(),
             ],
             theme: "default".to_string(),
         }
@@ -187,6 +189,7 @@ impl ThemePresets {
                 theme_minimal::output_style_segment(),
                 theme_minimal::opendoor_usage_segment(),
                 theme_minimal::opendoor_subscription_segment(),
+                theme_minimal::opendoor_daily_cost_segment(),
             ],
             theme: "minimal".to_string(),
         }
@@ -210,6 +213,7 @@ impl ThemePresets {
                 theme_gruvbox::output_style_segment(),
                 theme_gruvbox::opendoor_usage_segment(),
                 theme_gruvbox::opendoor_subscription_segment(),
+                theme_gruvbox::opendoor_daily_cost_segment(),
             ],
             theme: "gruvbox".to_string(),
         }
@@ -233,6 +237,7 @@ impl ThemePresets {
                 theme_nord::output_style_segment(),
                 theme_nord::opendoor_usage_segment(),
                 theme_nord::opendoor_subscription_segment(),
+                theme_nord::opendoor_daily_cost_segment(),
             ],
             theme: "nord".to_string(),
         }
@@ -256,6 +261,7 @@ impl ThemePresets {
                 theme_powerline_dark::output_style_segment(),
                 theme_powerline_dark::opendoor_usage_segment(),
                 theme_powerline_dark::opendoor_subscription_segment(),
+                theme_powerline_dark::opendoor_daily_cost_segment(),
             ],
             theme: "powerline-dark".to_string(),
         }
@@ -279,6 +285,7 @@ impl ThemePresets {
                 theme_powerline_light::output_style_segment(),
                 theme_powerline_light::opendoor_usage_segment(),
                 theme_powerline_light::opendoor_subscription_segment(),
+                theme_powerline_light::opendoor_daily_cost_segment(),
             ],
             theme: "powerline-light".to_string(),
         }
@@ -302,6 +309,7 @@ impl ThemePresets {
                 theme_powerline_rose_pine::output_style_segment(),
                 theme_powerline_rose_pine::opendoor_usage_segment(),
                 theme_powerline_rose_pine::opendoor_subscription_segment(),
+                theme_powerline_rose_pine::opendoor_daily_cost_segment(),
             ],
             theme: "powerline-rose-pine".to_string(),
         }
@@ -325,6 +333,7 @@ impl ThemePresets {
                 theme_powerline_tokyo_night::output_style_segment(),
                 theme_powerline_tokyo_night::opendoor_usage_segment(),
                 theme_powerline_tokyo_night::opendoor_subscription_segment(),
+                theme_powerline_tokyo_night::opendoor_daily_cost_segment(),
             ],
             theme: "powerline-tokyo-night".to_string(),
         }

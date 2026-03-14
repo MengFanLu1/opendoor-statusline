@@ -1,5 +1,6 @@
 use crate::config::{AnsiColor, Config, SegmentConfig, StyleMode};
 use crate::core::segments::SegmentData;
+use std::collections::HashSet;
 
 /// Strip ANSI escape sequences and return visible text length
 fn visible_width(text: &str) -> usize {
@@ -29,6 +30,63 @@ fn visible_width(text: &str) -> usize {
     visible.chars().count()
 }
 
+/// 获取终端宽度，用于自动换行计算
+/// 优先使用 COLUMNS 环境变量，其次通过 ioctl 从 stderr 获取（stdout 可能被管道重定向）
+fn get_terminal_width() -> usize {
+    // 环境变量
+    if let Ok(cols) = std::env::var("COLUMNS") {
+        if let Ok(w) = cols.parse::<usize>() {
+            if w > 0 {
+                return w;
+            }
+        }
+    }
+
+    // Unix: 通过 ioctl 获取终端宽度
+    #[cfg(unix)]
+    {
+        #[repr(C)]
+        struct Winsize {
+            ws_row: u16,
+            ws_col: u16,
+            ws_xpixel: u16,
+            ws_ypixel: u16,
+        }
+
+        // 非变参版本声明，实际调用安全（第三个参数为指针）
+        extern "C" {
+            fn ioctl(
+                fd: std::os::raw::c_int,
+                request: std::os::raw::c_ulong,
+                arg: *mut Winsize,
+            ) -> std::os::raw::c_int;
+        }
+
+        #[cfg(target_os = "macos")]
+        const TIOCGWINSZ: std::os::raw::c_ulong = 0x40087468;
+        #[cfg(target_os = "linux")]
+        const TIOCGWINSZ: std::os::raw::c_ulong = 0x5413;
+        #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+        const TIOCGWINSZ: std::os::raw::c_ulong = 0x5413;
+
+        let mut ws = Winsize {
+            ws_row: 0,
+            ws_col: 0,
+            ws_xpixel: 0,
+            ws_ypixel: 0,
+        };
+        // stderr (fd=2) 通常连接终端
+        unsafe {
+            if ioctl(2, TIOCGWINSZ, &mut ws) == 0 && ws.ws_col > 0 {
+                return ws.ws_col as usize;
+            }
+        }
+    }
+
+    // 默认 120 列
+    120
+}
+
 pub struct StatusLineGenerator {
     config: Config,
 }
@@ -56,16 +114,49 @@ impl StatusLineGenerator {
             return String::new();
         }
 
-        // 获取换行位置配置
-        let line_break_after = self.config.style.line_break_after;
-
-        // Handle Powerline arrow separators with color transition
-        if self.config.style.separator == "\u{e0b0}" {
-            self.join_with_powerline_arrows(&output, &enabled_segments, line_break_after)
+        // 手动配置优先；未配置时自动根据终端宽度计算换行位置
+        let break_positions = if let Some(n) = self.config.style.line_break_after {
+            let mut set = HashSet::new();
+            set.insert(n);
+            set
         } else {
-            // For all other separators, use white color and simple join
-            self.join_with_white_separators(&output, line_break_after)
+            self.calc_auto_break_positions(&output)
+        };
+
+        if self.config.style.separator == "\u{e0b0}" {
+            self.join_with_powerline_arrows(&output, &enabled_segments, &break_positions)
+        } else {
+            self.join_with_white_separators(&output, &break_positions)
         }
+    }
+
+    /// 根据终端宽度计算需要换行的位置（段索引集合）
+    fn calc_auto_break_positions(&self, rendered_segments: &[String]) -> HashSet<usize> {
+        let mut positions = HashSet::new();
+        let term_width = get_terminal_width();
+        if term_width == 0 {
+            return positions;
+        }
+
+        let sep_width = visible_width(&self.config.style.separator);
+        let mut current_width = 0usize;
+
+        for (i, seg) in rendered_segments.iter().enumerate() {
+            let seg_w = visible_width(seg);
+
+            // 第一个段不加分隔符宽度
+            let needed = if i == 0 { seg_w } else { sep_width + seg_w };
+
+            if current_width + needed > term_width && current_width > 0 {
+                // 在第 i 个段之前换行（即在第 i 个位置插入换行）
+                positions.insert(i);
+                current_width = seg_w;
+            } else {
+                current_width += needed;
+            }
+        }
+
+        positions
     }
 
     /// Generate statusline for TUI preview with proper width calculation
@@ -361,37 +452,38 @@ impl StatusLineGenerator {
     }
 
     /// Join segments with white separators (non-Powerline)
-    /// line_break_after: 在第 N 个 segment 后插入换行（None 则不换行）
+    /// break_positions: 在这些段索引处换行（在该段之前插入换行）
     fn join_with_white_separators(
         &self,
         rendered_segments: &[String],
-        line_break_after: Option<usize>,
+        break_positions: &HashSet<usize>,
     ) -> String {
         if rendered_segments.is_empty() {
             return String::new();
         }
 
-        // Use white color for separator
         let white_separator = format!("\x1b[37m{}\x1b[0m", self.config.style.separator);
+        let mut result = rendered_segments[0].clone();
 
-        match line_break_after {
-            Some(n) if n > 0 && n < rendered_segments.len() => {
-                // 前 N 段用分隔符拼接为第一行，剩余段为第二行
-                let line1 = rendered_segments[..n].join(&white_separator);
-                let line2 = rendered_segments[n..].join(&white_separator);
-                format!("{}\n{}", line1, line2)
+        for i in 1..rendered_segments.len() {
+            if break_positions.contains(&i) {
+                result.push('\n');
+            } else {
+                result.push_str(&white_separator);
             }
-            _ => rendered_segments.join(&white_separator),
+            result.push_str(&rendered_segments[i]);
         }
+
+        result
     }
 
     /// Join segments with Powerline arrow separators with proper color transitions
-    /// line_break_after: 在第 N 个 segment 后插入换行（None 则不换行）
+    /// break_positions: 在这些段索引处换行（在该段之前插入换行）
     fn join_with_powerline_arrows(
         &self,
         rendered_segments: &[String],
         segment_configs: &[(SegmentConfig, SegmentData)],
-        line_break_after: Option<usize>,
+        break_positions: &HashSet<usize>,
     ) -> String {
         if rendered_segments.is_empty() {
             return String::new();
@@ -404,13 +496,10 @@ impl StatusLineGenerator {
         let mut result = rendered_segments[0].clone();
 
         for (i, _) in rendered_segments.iter().enumerate().skip(1) {
-            // 在指定位置插入换行（替代箭头分隔符）
-            if let Some(n) = line_break_after {
-                if i == n {
-                    result.push_str("\x1b[0m\n");
-                    result.push_str(&rendered_segments[i]);
-                    continue;
-                }
+            if break_positions.contains(&i) {
+                result.push_str("\x1b[0m\n");
+                result.push_str(&rendered_segments[i]);
+                continue;
             }
 
             let prev_bg = segment_configs
@@ -420,14 +509,12 @@ impl StatusLineGenerator {
                 .get(i)
                 .and_then(|(config, _)| config.colors.background.as_ref());
 
-            // Create Powerline arrow with color transition
             let arrow = self.create_powerline_arrow(prev_bg, curr_bg);
 
             result.push_str(&arrow);
             result.push_str(&rendered_segments[i]);
         }
 
-        // Reset colors at the end
         result.push_str("\x1b[0m");
         result
     }
@@ -543,6 +630,9 @@ pub fn collect_all_segments(
             crate::config::SegmentId::OpenDoorUsage => opendoor_usage::collect(config, input),
             crate::config::SegmentId::OpenDoorSubscription => None,
             crate::config::SegmentId::OpenDoorStatus => None,
+            crate::config::SegmentId::OpenDoorDailyCost => {
+                opendoor_daily_cost::collect(config, input)
+            }
         };
 
         if let Some(data) = segment_data {

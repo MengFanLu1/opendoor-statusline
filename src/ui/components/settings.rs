@@ -39,6 +39,7 @@ impl SettingsComponent {
                 SegmentId::OpenDoorUsage => "opendoor 用量",
                 SegmentId::OpenDoorSubscription => "opendoor 订阅",
                 SegmentId::OpenDoorStatus => "opendoor 状态",
+                SegmentId::OpenDoorDailyCost => "opendoor 今日消费",
             };
             let current_icon = match config.style.mode {
                 StyleMode::Plain => &segment.icon.plain,

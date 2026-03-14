@@ -506,6 +506,7 @@ impl App {
                         SegmentId::OpenDoorUsage => "OpenDoor Usage",
                         SegmentId::OpenDoorSubscription => "OpenDoor Subscription",
                         SegmentId::OpenDoorStatus => "OpenDoor Status",
+                        SegmentId::OpenDoorDailyCost => "OpenDoor Daily Cost",
                     };
                     let is_enabled = segment.enabled;
                     self.status_message = Some(format!(
@@ -536,6 +537,7 @@ impl App {
                                 SegmentId::OpenDoorUsage => "OpenDoor Usage",
                                 SegmentId::OpenDoorSubscription => "OpenDoor Subscription",
                                 SegmentId::OpenDoorStatus => "OpenDoor Status",
+                                SegmentId::OpenDoorDailyCost => "OpenDoor Daily Cost",
                             };
                             let is_enabled = segment.enabled;
                             self.status_message = Some(format!(
