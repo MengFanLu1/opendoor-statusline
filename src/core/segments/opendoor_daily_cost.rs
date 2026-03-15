@@ -56,11 +56,11 @@ pub fn collect(config: &Config, _input: &InputData) -> Option<SegmentData> {
         }
     };
 
-    let used = stats.used_usd_f64();
+    let cost_today = stats.cost_today_usd_f64();
     let calls = stats.calls_today;
 
     Some(SegmentData {
-        primary: format!("${:.2} ({}次)", used, calls),
+        primary: format!("${:.2} ({}次)", cost_today, calls),
         secondary: String::new(),
         metadata: HashMap::new(),
     })

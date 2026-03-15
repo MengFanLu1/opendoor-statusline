@@ -26,7 +26,7 @@ impl Default for ApiConfig {
 pub struct OpenDoorStats {
     /// 账户余额（人民币）
     pub balance_cny: String,
-    /// 今日消费（美元）
+    /// 累计消费（美元）
     pub used_usd: String,
     /// 总限额（美元）
     pub limit_usd: String,
@@ -34,6 +34,9 @@ pub struct OpenDoorStats {
     pub percentage_used: f64,
     /// 今日调用次数
     pub calls_today: u64,
+    /// 今日消费（美元），API 未返回时降级为 0
+    #[serde(default)]
+    pub cost_today_usd: Option<String>,
 }
 
 impl OpenDoorStats {
@@ -53,6 +56,13 @@ impl OpenDoorStats {
 
     pub fn limit_usd_f64(&self) -> f64 {
         self.limit_usd.parse().unwrap_or(0.0)
+    }
+
+    pub fn cost_today_usd_f64(&self) -> f64 {
+        self.cost_today_usd
+            .as_deref()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0.0)
     }
 }
 
