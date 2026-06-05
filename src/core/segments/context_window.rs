@@ -14,16 +14,22 @@ impl ContextWindowSegment {
     }
 
     /// Get context limit for the specified model
-    fn get_context_limit_for_model(model_id: &str) -> u32 {
+    fn get_context_limit_for_model(model_id: &str, display_name: &str) -> u32 {
         let model_config = ModelConfig::load();
-        model_config.get_context_limit(model_id)
+        let display = if display_name.is_empty() {
+            None
+        } else {
+            Some(display_name)
+        };
+        model_config.get_context_limit(model_id, display)
     }
 }
 
 impl Segment for ContextWindowSegment {
     fn collect(&self, input: &InputData) -> Option<SegmentData> {
         // Dynamically determine context limit based on current model ID
-        let context_limit = Self::get_context_limit_for_model(&input.model.id);
+        let context_limit =
+            Self::get_context_limit_for_model(&input.model.id, &input.model.display_name);
 
         let context_used_token_opt = parse_transcript_usage(&input.transcript_path);
 
@@ -125,7 +131,10 @@ fn try_parse_transcript_file(path: &Path) -> Option<u32> {
         }
     }
 
-    // Normal case: find the last assistant message in current file
+    // Find the most recent main-chain assistant message.
+    // Sub-agent (Task tool) calls live on a sidechain — their token usage is
+    // private to the sub-agent and must not be attributed to the main thread.
+    // API error messages are synthetic placeholders with bogus token counts.
     for line in lines.iter().rev() {
         let line = line.trim();
         if line.is_empty() {
@@ -133,12 +142,19 @@ fn try_parse_transcript_file(path: &Path) -> Option<u32> {
         }
 
         if let Ok(entry) = serde_json::from_str::<TranscriptEntry>(line) {
-            if entry.r#type.as_deref() == Some("assistant") {
-                if let Some(message) = &entry.message {
-                    if let Some(raw_usage) = &message.usage {
-                        let normalized = raw_usage.clone().normalize();
-                        return Some(normalized.display_tokens());
-                    }
+            if entry.r#type.as_deref() != Some("assistant") {
+                continue;
+            }
+            if entry.is_sidechain == Some(true) {
+                continue;
+            }
+            if entry.is_api_error_message == Some(true) {
+                continue;
+            }
+            if let Some(message) = &entry.message {
+                if let Some(raw_usage) = &message.usage {
+                    let normalized = raw_usage.clone().normalize();
+                    return Some(normalized.display_tokens());
                 }
             }
         }
@@ -185,6 +201,11 @@ fn search_uuid_in_file(path: &Path, target_uuid: &str) -> Option<u32> {
         if let Ok(entry) = serde_json::from_str::<TranscriptEntry>(line) {
             if let Some(uuid) = &entry.uuid {
                 if uuid == target_uuid {
+                    if entry.is_sidechain == Some(true)
+                        || entry.is_api_error_message == Some(true)
+                    {
+                        break;
+                    }
                     // Found the target message, check its type
                     if entry.r#type.as_deref() == Some("assistant") {
                         // Direct assistant message with usage

@@ -204,13 +204,12 @@ pub struct NormalizedUsage {
 
 impl NormalizedUsage {
     /// Get tokens that count toward context window
-    /// This includes all tokens that consume context window space
-    /// Output tokens from this turn will become input tokens in the next turn
+    /// Mirrors Claude Code's own /context calculation:
+    /// input + cache_creation + cache_read. Output tokens of the current turn
+    /// are NOT counted — they only become part of context after they fold back
+    /// into input on the next turn.
     pub fn context_tokens(&self) -> u32 {
-        self.input_tokens
-            + self.cache_creation_input_tokens
-            + self.cache_read_input_tokens
-            + self.output_tokens
+        self.input_tokens + self.cache_creation_input_tokens + self.cache_read_input_tokens
     }
 
     /// Get total tokens for cost calculation
@@ -431,4 +430,8 @@ pub struct TranscriptEntry {
     #[serde(rename = "parentUuid")]
     pub parent_uuid: Option<String>,
     pub summary: Option<String>,
+    #[serde(rename = "isSidechain", default)]
+    pub is_sidechain: Option<bool>,
+    #[serde(rename = "isApiErrorMessage", default)]
+    pub is_api_error_message: Option<bool>,
 }

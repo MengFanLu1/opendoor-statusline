@@ -1,6 +1,8 @@
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
+use std::sync::OnceLock;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelConfig {
@@ -59,12 +61,25 @@ impl ModelConfig {
         model_config
     }
 
-    /// Get context limit for a model based on ID pattern matching
-    /// Checks external config first, then falls back to built-in config
-    pub fn get_context_limit(&self, model_id: &str) -> u32 {
-        let model_lower = model_id.to_lowercase();
+    /// Get context limit for a model.
+    ///
+    /// Resolution order (mirrors ccstatusline's behaviour):
+    ///   1. Regex-extract `(1M)` / `[1m]` / `200k` from `id + display_name`
+    ///      — this catches Claude Code's `display_name` like
+    ///      "Opus 4.7 (1M context)" without needing a hard-coded entry.
+    ///   2. Fall back to substring match against the configured model table.
+    ///   3. Default 200_000 when nothing matches.
+    pub fn get_context_limit(&self, model_id: &str, display_name: Option<&str>) -> u32 {
+        let combined = match display_name {
+            Some(name) if !name.is_empty() => format!("{} {}", model_id, name),
+            _ => model_id.to_string(),
+        };
 
-        // Check model entries
+        if let Some(size) = parse_context_window_size(&combined) {
+            return size;
+        }
+
+        let model_lower = model_id.to_lowercase();
         for entry in &self.model_entries {
             if model_lower.contains(&entry.pattern.to_lowercase()) {
                 return entry.context_limit;
@@ -199,4 +214,51 @@ impl Default for ModelConfig {
             ],
         }
     }
+}
+
+fn delimited_window_regex() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(r"(?i)[\(\[]\s*(\d+(?:[,_]\d+)*(?:\.\d+)?)\s*([km])\s*[\)\]]").unwrap()
+    })
+}
+
+fn bare_window_regex() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(r"(?i)\b(\d+(?:[,_]\d+)*(?:\.\d+)?)\s*([km])(?:\s*(?:token\s*)?context)?\b")
+            .unwrap()
+    })
+}
+
+fn parse_window_match(value: &str, unit: &str) -> Option<u32> {
+    let cleaned: String = value.chars().filter(|c| *c != ',' && *c != '_').collect();
+    let parsed: f64 = cleaned.parse().ok()?;
+    if !parsed.is_finite() || parsed <= 0.0 {
+        return None;
+    }
+    let multiplier = if unit.eq_ignore_ascii_case("m") {
+        1_000_000.0
+    } else {
+        1_000.0
+    };
+    Some((parsed * multiplier).round() as u32)
+}
+
+/// Extract a context-window size embedded in a model identifier string.
+/// Recognises `(1M)`, `[1m]`, `1M context`, `200k` etc. so newly-released
+/// 1M-context models work without a hard-coded model table entry.
+pub fn parse_context_window_size(identifier: &str) -> Option<u32> {
+    if let Some(caps) = delimited_window_regex().captures(identifier) {
+        if let (Some(value), Some(unit)) = (caps.get(1), caps.get(2)) {
+            if let Some(size) = parse_window_match(value.as_str(), unit.as_str()) {
+                return Some(size);
+            }
+        }
+    }
+
+    let caps = bare_window_regex().captures(identifier)?;
+    let value = caps.get(1)?.as_str();
+    let unit = caps.get(2)?.as_str();
+    parse_window_match(value, unit)
 }
